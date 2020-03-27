@@ -32,7 +32,7 @@ class App {
     const { MONGO_USER, MONGO_PASSWORD } = process.env;
     mongoose.connect(
       `mongodb+srv://${MONGO_USER}:${MONGO_PASSWORD}@cluster0-c140d.gcp.mongodb.net/simple-todos?retryWrites=true&w=majority`,
-      { useUnifiedTopology: true },
+      { useUnifiedTopology: true, useNewUrlParser: true },
       error => {
         error ? console.log(error) : console.log('Database connected!');
       }
