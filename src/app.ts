@@ -1,6 +1,7 @@
-import express, { urlencoded } from 'express';
+import express from 'express';
 import Controller from './interfaces/controller.interface';
 import mongoose from 'mongoose';
+import errorMiddleware from './middlewares/error.middleware';
 
 class App {
   public app: express.Application;
@@ -10,6 +11,7 @@ class App {
     this.connectToTheDatabase();
     this.initializeMiddlewares();
     this.initializeControllers(controllers);
+    this.initializeErrorHandling();
   }
 
   public listen() {
@@ -25,7 +27,7 @@ class App {
   private initializeControllers(controllers: Controller[]) {
     controllers.forEach(controller => {
       this.app.use('/', controller.router);
-    });
+		});
   }
 
   private connectToTheDatabase() {
@@ -37,6 +39,10 @@ class App {
         error ? console.log(error) : console.log('Database connected!');
       }
     );
+  }
+
+  private initializeErrorHandling() {
+    this.app.use(errorMiddleware);
   }
 }
 
