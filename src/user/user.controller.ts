@@ -3,6 +3,7 @@ import Controller from '../interfaces/controller.interface';
 import userModel from './user.model';
 import UserNotFoundException from '../exceptions/UserNotFoundException';
 import mongoose from 'mongoose';
+import User from './user.interface';
 
 class userController implements Controller {
   public path = '/users';
@@ -12,6 +13,7 @@ class userController implements Controller {
     this.router.get(this.path, this.getAllUsers);
     this.router.post(this.path, this.createUser);
     this.router.get(`${this.path}/:id`, this.getUserById);
+    this.router.put(`${this.path}/:id`, this.updateUser);
   }
 
   // CREATE
@@ -22,7 +24,6 @@ class userController implements Controller {
       const response = user.toObject();
       delete response.password;
       delete response.__v;
-      delete response.email;
 
       return res.status(201).json(response);
     } catch (error) {
@@ -55,11 +56,33 @@ class userController implements Controller {
       return res.status(500).json(error);
     }
   }
+
+  // UPDATE
+  private async updateUser(req: Request, res: Response, next: NextFunction) {
+    const id = req.params.id;
+    const updatedUser: User = req.body;
+    try {
+      const user = await userModel.findByIdAndUpdate(id, updatedUser, {
+        new: true,
+      });
+      if (!user) {
+        return next(new UserNotFoundException(id));
+      }
+
+      const response: User = user.toObject();
+      delete response.password;
+      delete response.__v;
+
+      return res.status(200).json(response);
+    } catch (error) {
+      if (error instanceof mongoose.Error.CastError) {
+        return next(new UserNotFoundException(id));
+      }
+      return res.status(500).json(error);
+    }
+  }
+
+  // DELETE
 }
 
-// UPDATE
-
-
-
-// DELETE
 export default userController;
