@@ -14,6 +14,7 @@ class userController implements Controller {
     this.router.post(this.path, this.createUser);
     this.router.get(`${this.path}/:id`, this.getUserById);
     this.router.put(`${this.path}/:id`, this.updateUser);
+    this.router.delete(`${this.path}/:id`, this.deleteUser);
   }
 
   // CREATE
@@ -83,6 +84,22 @@ class userController implements Controller {
   }
 
   // DELETE
+  private async deleteUser(req: Request, res: Response, next: NextFunction) {
+    const id = req.params.id;
+
+    try {
+      const user = await userModel.findByIdAndDelete(id);
+      if (!user) {
+        return next(new UserNotFoundException(id));
+      }
+      return res.status(200).send();
+    } catch (error) {
+      if (error instanceof mongoose.Error.CastError) {
+        return next(new UserNotFoundException(id));
+      }
+      return res.status(500).json(error);
+    }
+  }
 }
 
 export default userController;
