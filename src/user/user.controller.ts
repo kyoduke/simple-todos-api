@@ -35,7 +35,10 @@ class userController implements Controller {
   // READ
   private async getAllUsers(req: Request, res: Response) {
     try {
-      const users = await userModel.find().select('-__v -password -email');
+      const users = await userModel
+        .find()
+        .populate('todos')
+        .select('-__v -password -email');
       return res.status(200).json(users);
     } catch (error) {
       return res.status(500).json(error);
@@ -45,7 +48,7 @@ class userController implements Controller {
   private async getUserById(req: Request, res: Response, next: NextFunction) {
     const id = req.params.id;
     try {
-      const user = await userModel.findById(id);
+      const user = await userModel.findById(id).populate('todos');
       if (!user) {
         return next(new UserNotFoundException(id));
       }

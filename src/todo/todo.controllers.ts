@@ -4,6 +4,7 @@ import todoModel from './todo.model';
 import mongoose from 'mongoose';
 import TodoNotFoundException from '../exceptions/TodoNotFoundException';
 import Todo from './todo.interface';
+import UserNotFoundException from '../exceptions/UserNotFoundException';
 
 class TodosController implements Controller {
   public path = '/todos';
@@ -29,7 +30,9 @@ class TodosController implements Controller {
       await createdTodo.save();
       return res.status(201).json(createdTodo);
     } catch (error) {
-      console.log(error);
+      if (error.errors.author) {
+        return next(new UserNotFoundException(req.body.author));
+      }
       return next(error);
     }
   }
@@ -37,8 +40,8 @@ class TodosController implements Controller {
   // READ
   private async getAllTodos(req: Request, res: Response, next: NextFunction) {
     try {
-      const todos = await todoModel.find();
-      return res.json(todos);
+      const todos = await todoModel.find().populate('author');
+      return res.status(200).json(todos);
     } catch (error) {
       return next(error);
     }
@@ -48,7 +51,7 @@ class TodosController implements Controller {
     const id = req.params.id;
 
     try {
-      const todo = await todoModel.findById(id);
+      const todo = await todoModel.findById(id).populate('author');
 
       if (!todo) {
         return next(new TodoNotFoundException(id));
@@ -69,7 +72,7 @@ class TodosController implements Controller {
 
     try {
       const todo = await todoModel.findByIdAndUpdate(id, updatedTodo, {
-        new: true
+        new: true,
       });
 
       if (!todo) {

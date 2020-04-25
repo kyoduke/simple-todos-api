@@ -6,6 +6,7 @@ interface User extends Document {
   email: string;
   age: number;
   password: string;
+  todos: Array<string>;
 }
 
 export default User;

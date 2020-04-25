@@ -2,39 +2,41 @@ import User from './user.interface';
 import mongoose from 'mongoose';
 import validator from 'validator';
 import bcrypt from 'bcryptjs';
+import Todo from '../todo/todo.interface';
 
 const userSchema = new mongoose.Schema({
   firstName: {
     type: String,
     required: true,
-    trim: true
+    trim: true,
   },
   lastName: {
     type: String,
     required: true,
-    trim: true
+    trim: true,
   },
   email: {
     type: String,
     required: true,
     validate: {
       validator: (e: string) => validator.isEmail(e),
-      message: 'Invalid email address'
+      message: 'Invalid email address',
     },
-    trim: true
+    trim: true,
   },
   age: {
     type: Number,
-    required: true
+    required: true,
   },
   password: {
     type: String,
     required: true,
-    minlength: [8, 'Password must be at least 8 characters']
-  }
+    minlength: [8, 'Password must be at least 8 characters'],
+  },
+  todos: [{ type: mongoose.Types.ObjectId, ref: 'Todo' }],
 });
 
-userSchema.pre<User>('save', async function(next) {
+userSchema.pre<User>('save', async function (next) {
   if (!this.isModified('password')) {
     return next();
   }
@@ -46,14 +48,13 @@ userSchema.pre<User>('save', async function(next) {
 });
 
 userSchema.path('email').validate(async (e: string) => {
-	const user = await userModel.findOne({ email: e });
-	if (!user) {
-		return true;
-	}
+  const user = await userModel.findOne({ email: e });
+  if (!user) {
+    return true;
+  }
 
-	return false;
+  return false;
 }, 'This email address is already taken');
-
 
 const userModel = mongoose.model<User>('User', userSchema);
 
