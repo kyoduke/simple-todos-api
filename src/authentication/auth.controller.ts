@@ -5,6 +5,8 @@ import jwt from 'jsonwebtoken';
 import UserNotFoundException from '../exceptions/UserNotFoundException';
 import NotValidCredentialsException from '../exceptions/NotValidCredentialsException';
 import bcrypt from 'bcryptjs';
+import TokenData from '../interfaces/tokenData.interface';
+import User from '../user/user.interface';
 
 class AuthenticationController implements Controller {
   public path = '/auth';
@@ -34,18 +36,24 @@ class AuthenticationController implements Controller {
         if (!ok) {
           return next(new NotValidCredentialsException());
         }
-        let token;
 
+        const payload = { _id: user._id };
+        const expiresIn = 60 * 60 * 24 * 60;
         jwt.sign(
-          {user},
+          payload,
           `${process.env.JWT_SECRET}`,
-          { expiresIn: '60d' },
+          { expiresIn },
           (err, token) => {
             if (err) {
-              console.log(err)
+              console.log(err);
               return next(new Error());
             }
-            return res.status(200).json(token);
+            res.cookie('Authorization', token, {
+              maxAge: 60 * 60 * 60 * 24 * 1000,
+              httpOnly: true,
+            });
+   
+            return res.status(200).json(user);
           }
         );
       } else {

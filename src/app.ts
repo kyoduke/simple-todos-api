@@ -2,6 +2,7 @@ import express from 'express';
 import Controller from './interfaces/controller.interface';
 import mongoose from 'mongoose';
 import errorMiddleware from './middlewares/error.middleware';
+const cookieParser = require('cookie-parser');
 
 class App {
   public app: express.Application;
@@ -22,6 +23,7 @@ class App {
 
   private initializeMiddlewares() {
     this.app.use(express.json());
+    this.app.use(cookieParser());
   }
 
   private initializeControllers(controllers: Controller[]) {
