@@ -1,11 +1,9 @@
 import Controller from '../interfaces/controller.interface';
 import { Router, Request, Response, NextFunction } from 'express';
 import userModel from '../user/user.model';
-import jwt from 'jsonwebtoken';
 import UserNotFoundException from '../exceptions/UserNotFoundException';
 import NotValidCredentialsException from '../exceptions/NotValidCredentialsException';
 import bcrypt from 'bcryptjs';
-import TokenData from '../interfaces/tokenData.interface';
 import AuthenticationService from './auth.service';
 
 class AuthenticationController implements Controller {
@@ -32,18 +30,15 @@ class AuthenticationController implements Controller {
 
       if (user.email === email) {
         const ok = await bcrypt.compare(password, user.password);
-
         if (!ok) {
           return next(new NotValidCredentialsException());
         }
         const { expiresIn, token } = this.authentication.createToken(user);
-
         res.cookie('Authorization', token, {
           maxAge: expiresIn * 1000,
           httpOnly: true,
         });
-
-        return res.status(200).json(user);
+        return res.status(200).json();
       }
     } catch (error) {
       console.log(error);

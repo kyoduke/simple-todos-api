@@ -5,8 +5,6 @@ import jwt from 'jsonwebtoken';
 import env from '../utils/cleanedEnv';
 
 class AuthenticationService {
-  public user = userModel;
-
   public createToken(user: User): TokenData {
     const payload = { _id: user._id };
     const expiresIn = 60 * 60 * 24 * 60;
