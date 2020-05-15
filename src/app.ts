@@ -2,6 +2,7 @@ import express from 'express';
 import Controller from './interfaces/controller.interface';
 import mongoose from 'mongoose';
 import errorMiddleware from './middlewares/error.middleware';
+import env from './utils/cleanedEnv';
 const cookieParser = require('cookie-parser');
 
 class App {
@@ -16,8 +17,8 @@ class App {
   }
 
   public listen() {
-    this.app.listen(process.env.PORT || 3333, () => {
-      console.log(`App listening on the port ${process.env.PORT || 3333}`);
+    this.app.listen(env.PORT || 3333, () => {
+      console.log(`App listening on the port ${env.PORT || 3333}`);
     });
   }
 
@@ -33,7 +34,7 @@ class App {
   }
 
   private connectToTheDatabase() {
-    const { MONGO_USER, MONGO_PASSWORD } = process.env;
+    const { MONGO_USER, MONGO_PASSWORD } = env;
     mongoose.connect(
       `mongodb+srv://${MONGO_USER}:${MONGO_PASSWORD}@cluster0-c140d.gcp.mongodb.net/simple-todos?retryWrites=true&w=majority`,
       {

@@ -6,11 +6,12 @@ import UserNotFoundException from '../exceptions/UserNotFoundException';
 import NotValidCredentialsException from '../exceptions/NotValidCredentialsException';
 import bcrypt from 'bcryptjs';
 import TokenData from '../interfaces/tokenData.interface';
-import User from '../user/user.interface';
+import AuthenticationService from './auth.service';
 
 class AuthenticationController implements Controller {
   public path = '/auth';
   public router = Router();
+  public authentication = new AuthenticationService();
 
   constructor() {
     this.initializeRoutes();
@@ -20,9 +21,8 @@ class AuthenticationController implements Controller {
     this.router.post(`${this.path}/login`, this.login);
   }
 
-  private async login(req: Request, res: Response, next: NextFunction) {
+  private login = async (req: Request, res: Response, next: NextFunction) => {
     const { email, password } = req.body;
-
     try {
       const user = await userModel.findOne({ email });
 
@@ -36,33 +36,20 @@ class AuthenticationController implements Controller {
         if (!ok) {
           return next(new NotValidCredentialsException());
         }
+        const { expiresIn, token } = this.authentication.createToken(user);
 
-        const payload = { _id: user._id };
-        const expiresIn = 60 * 60 * 24 * 60;
-        jwt.sign(
-          payload,
-          `${process.env.JWT_SECRET}`,
-          { expiresIn },
-          (err, token) => {
-            if (err) {
-              console.log(err);
-              return next(new Error());
-            }
-            res.cookie('Authorization', token, {
-              maxAge: 60 * 60 * 60 * 24 * 1000,
-              httpOnly: true,
-            });
-   
-            return res.status(200).json(user);
-          }
-        );
-      } else {
-        return next(new NotValidCredentialsException());
+        res.cookie('Authorization', token, {
+          maxAge: expiresIn * 1000,
+          httpOnly: true,
+        });
+
+        return res.status(200).json(user);
       }
     } catch (error) {
+      console.log(error);
       return next(new Error());
     }
-  }
+  };
 }
 
 export default AuthenticationController;
